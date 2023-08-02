@@ -34,6 +34,12 @@ function Button({ children, onClick }) {
 
 export default function App() {
 	const [showAddFriend, setShowAddFriend] = useState(false);
+	const [friends, setFriends] = useState(initialFriends);
+
+	function handleAddFriend(friend) {
+		setFriends((friends) => [...friends, friend]);
+		setShowAddFriend((show) => false);
+	}
 
 	function handleShowAddFriend() {
 		setShowAddFriend((show) => !show);
@@ -42,8 +48,8 @@ export default function App() {
 	return (
 		<div className="app">
 			<div className="sidebar">
-				<FriendList />
-				{showAddFriend && <FormAddFriend />}
+				<FriendList friends={friends} />
+				{showAddFriend && <FormAddFriend onAddFriend={handleAddFriend} />}
 				<Button onClick={handleShowAddFriend}>
 					{showAddFriend ? "Close Form" : "Add Friend"}
 				</Button>
@@ -53,9 +59,7 @@ export default function App() {
 	);
 }
 
-function FriendList() {
-	const friends = initialFriends;
-
+function FriendList({ friends }) {
 	return (
 		<ul>
 			{friends.map((friend) => (
@@ -94,14 +98,52 @@ function Friend({ friend }) {
 	);
 }
 
-function FormAddFriend() {
+function FormAddFriend({ onAddFriend }) {
+	const [imageURL, setImageURL] = useState("https://i.pravatar.cc/48");
+	const [name, setName] = useState("");
+
+	function handleEvent(setter, event) {
+		setter((e) => event.target.value);
+	}
+
+	function handleSubmit(event) {
+		event.preventDefault();
+
+		if (!name || !imageURL) return;
+
+		const id = crypto.randomUUID();
+
+		const newFriend = {
+			balance: 0,
+			id,
+			imageURL: `${imageURL}?=${id}`,
+			name,
+		};
+
+		onAddFriend(newFriend);
+
+		setImageURL("https://i.pravatar.cc/48");
+		setName("");
+	}
+
 	return (
-		<form className="form-add-friend">
+		<form
+			className="form-add-friend"
+			onSubmit={handleSubmit}
+		>
 			<label>👫 Friend name:</label>
-			<input type="text" />
+			<input
+				type="text"
+				value={name}
+				onChange={(event) => handleEvent(setName, event)}
+			/>
 
 			<label>🖼 Image URL</label>
-			<input type="text" />
+			<input
+				type="text"
+				value={imageURL}
+				onChange={(event) => handleEvent(setImageURL, event)}
+			/>
 
 			<Button>Add</Button>
 		</form>
